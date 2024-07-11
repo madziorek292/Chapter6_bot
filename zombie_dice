@@ -1,0 +1,162 @@
+#Gry programistyczne to gatunek gier, w których zamiast grać bezpośrednio, gracze piszą programy botów, aby te mogły grać autonomicznie. Stworzyłem symulator Zombie Dice, który pozwala programistom ćwiczyć swoje umiejętności poprzez tworzenie sztucznej inteligencji grającej w gry. Boty Zombie Dice mogą być proste lub niezwykle skomplikowane, co sprawia, że są doskonałym ćwiczeniem na zajęcia lub indywidualnym wyzwaniem programistycznym.
+
+#Zombie Dice to szybka, zabawna gra kościana od Steve Jackson Games. Gracze są zombie, które próbują zjeść jak najwięcej ludzkich mózgów, nie dając się przy tym zastrzelić trzykrotnie. W kubku znajduje się 13 kości z ikonami mózgów, śladów i strzelb. Ikony na kościach są kolorowe, a każdy kolor ma inną szansę na wystąpienie danego zdarzenia. Każda kość ma dwie strony ze śladami, ale kości z zielonymi ikonami mają więcej stron z mózgami, kości z czerwonymi ikonami mają więcej strzelb, a kości z żółtymi ikonami mają równomiernie podzielone strony z mózgami i strzelbami. W każdej turze gracza należy wykonać następujące czynności:
+
+#Umieść wszystkie 13 kości w kubku. Gracz losowo wyciąga trzy kości z kubka i rzuca nimi. Gracze zawsze rzucają dokładnie trzema kośćmi.
+#Odkładają na bok i liczą mózgi (ludzi, których mózgi zjedzono) i strzelby (ludzi, którzy się bronili). Zgromadzenie trzech strzelb automatycznie kończy turę gracza z zerowym wynikiem (niezależnie od liczby zdobytych mózgów). Jeśli mają od zera do dwóch strzelb, mogą kontynuować rzucanie, jeśli chcą. Mogą również zdecydować się zakończyć swoją turę i zdobyć jeden punkt za każdy mózg.
+#Jeśli gracz zdecyduje się kontynuować rzucanie, musi ponownie rzucić wszystkimi kośćmi ze śladami. Pamiętaj, że gracz musi zawsze rzucać trzema kośćmi; musi wyciągnąć więcej kości z kubka, jeśli ma mniej niż trzy kości do ponownego rzutu. Gracz może kontynuować rzucanie kośćmi, aż zdobędzie trzy strzelby – tracąc wszystko – lub wszystkie 13 kości zostaną rzucone. Gracz nie może rzucać tylko jedną lub dwiema kośćmi, ani nie może zatrzymać się w trakcie ponownego rzutu.
+#Kiedy ktoś osiągnie 13 mózgów, reszta graczy kończy rundę. Osoba z największą liczbą mózgów wygrywa. Jeśli jest remis, gracze biorący udział w remisie grają jedną dodatkową rundę rozstrzygającą.
+#Zombie Dice ma mechanikę "push-your-luck": im więcej razy rzucasz kośćmi, tym więcej mózgów możesz zdobyć, ale tym większe prawdopodobieństwo, że w końcu zdobędziesz trzy strzelby i stracisz wszystko. Gdy gracz osiągnie 13 punktów, pozostali gracze mają jeszcze jedną turę (aby ewentualnie dogonić) i gra się kończy. Gracz z największą liczbą punktów wygrywa. Pełne zasady można znaleźć na stronie Zombie Dice.
+
+#Instalacja modułu zombiedice
+#Zainstaluj moduł zombiedice za pomocą pip, postępując zgodnie z instrukcjami w dodatku A. Możesz uruchomić demo symulatora z gotowymi botami, uruchamiając następujące polecenia w interaktywnej konsoli:
+
+#python
+#Skopiuj kod
+import zombiedice
+zombiedice.demo()
+#Program uruchomi przeglądarkę internetową, która będzie wyglądać jak na rysunku 6-1. Aby zakończyć, naciśnij Ctrl-C.
+
+#Tworzenie botów
+#Stworzysz boty, pisząc klasę z metodą turn(), która jest wywoływana przez symulator, gdy jest tura twojego bota do rzutu kośćmi. Klasy są poza zakresem tej książki, więc kod klasy jest już ustawiony w programie myzombie.py, który znajduje się w pliku ZIP do pobrania dla tej książki na https://nostarch.com/automatestuff2/. Pisanie metody jest zasadniczo tym samym, co pisanie funkcji, i możesz użyć kodu metody turn() w programie myZombie.py jako szablonu. Wewnątrz tej metody turn() będziesz wywoływać funkcję zombiedice.roll() tak często, jak chcesz, aby twój bot rzucał kośćmi.
+
+#python
+#Skopiuj kod
+import zombiedice
+
+class MyZombie:
+    def __init__(self, name):
+        # Wszystkie zombie muszą mieć imię:
+        self.name = name
+
+    def turn(self, gameState):
+        # gameState to słownik z informacjami o bieżącym stanie gry.
+        # Możesz zignorować go w swoim kodzie.
+        diceRollResults = zombiedice.roll()  # pierwszy rzut
+        # roll() zwraca słownik z kluczami 'brains', 'shotgun' i
+        # 'footsteps' z informacją, ile razy wypadły poszczególne symbole.
+        # Klucz 'rolls' to lista krotek (color, icon) z dokładnymi
+        # wynikami rzutu.
+        # Przykład wartości zwracanej przez roll():
+        # {'brains': 1, 'footsteps': 1, 'shotgun': 1,
+        #  'rolls': [('yellow', 'brains'), ('red', 'footsteps'),
+        #            ('green', 'shotgun')]}
+        # ZASTĄP TEN KOD ZOMBIE SWOIM WŁASNYM:
+        brains = 0
+        while diceRollResults is not None:
+            brains += diceRollResults['brains']
+            if brains < 2:
+                diceRollResults = zombiedice.roll()  # rzucaj ponownie
+            else:
+                break
+
+zombies = (
+    zombiedice.examples.RandomCoinFlipZombie(name='Random'),
+    zombiedice.examples.RollsUntilInTheLeadZombie(name='Until Leading'),
+    zombiedice.examples.MinNumShotgunsThenStopsZombie(name='Stop at 2 Shotguns', minShotguns=2),
+    zombiedice.examples.MinNumShotgunsThenStopsZombie(name='Stop at 1 Shotgun', minShotguns=1),
+    MyZombie(name='My Zombie Bot'),
+    # Dodaj tutaj innych graczy zombie.
+)
+
+# Odkomentuj jedną z poniższych linii, aby uruchomić w trybie CLI lub Web GUI:
+# zombiedice.runTournament(zombies=zombies, numGames=1000)
+zombiedice.runWebGui(zombies=zombies, numGames=1000)
+#Metoda turn() przyjmuje dwa parametry: self i gameState. Możesz je zignorować w swoich pierwszych botach i skonsultować się z dokumentacją online później, jeśli chcesz dowiedzieć się więcej. Metoda turn() powinna wywoływać zombiedice.roll() przynajmniej raz dla początkowego rzutu. Następnie, w zależności od strategii bota, może wywoływać zombiedice.roll() ponownie tak często, jak chce. W myZombie.py, metoda turn() wywołuje zombiedice.roll() dwukrotnie, co oznacza, że bot zombie zawsze rzuca kośćmi dwa razy na turę, niezależnie od wyników rzutu.
+
+#Wartość zwracana przez zombiedice.roll() informuje kod o wynikach rzutu kośćmi. Jest to słownik z czterema kluczami. Trzy z kluczy, 'shotgun', 'brains' i 'footsteps', mają wartości całkowite określające, ile razy wypadły poszczególne ikony. Czwarty klucz 'rolls' ma wartość, która jest listą krotek dla każdego rzutu kością. Krotki zawierają dwa ciągi znaków: kolor kości w indeksie 0 i ikonę wyrzuconą w indeksie 1. Zobacz komentarze w kodzie definicji metody turn() dla przykładu. Jeśli bot już wyrzucił trzy strzelby, zombiedice.roll() zwróci None.
+
+#Zadanie
+#Spróbuj napisać kilka swoich własnych botów do
+
+#Bot, który losowo decyduje, czy kontynuować, czy przerwać po pierwszym rzucie
+
+import random
+import zombiedice
+
+class RandomDecisionZombie:
+    def __init__(self, name):
+        self.name = name
+
+    def turn(self, gameState):
+        diceRollResults = zombiedice.roll()  # pierwszy rzut
+        if random.choice([True, False]):
+            while diceRollResults is not None:
+                diceRollResults = zombiedice.roll()  # rzucaj ponownie
+
+
+#Bot, który przestaje rzucać po zdobyciu dwóch mózgów
+class TwoBrainsZombie:
+    def __init__(self, name):
+        self.name = name
+
+    def turn(self, gameState):
+        brains = 0
+        diceRollResults = zombiedice.roll()  # pierwszy rzut
+        while diceRollResults is not None:
+            brains += diceRollResults['brains']
+            if brains >= 2:
+                break
+            diceRollResults = zombiedice.roll()  # rzucaj ponownie
+
+#Bot, który przestaje rzucać po zdobyciu dwóch strzelb
+class TwoShotgunsZombie:
+    def __init__(self, name):
+        self.name = name
+
+    def turn(self, gameState):
+        shotguns = 0
+        diceRollResults = zombiedice.roll()  # pierwszy rzut
+        while diceRollResults is not None:
+            shotguns += diceRollResults['shotgun']
+            if shotguns >= 2:
+                break
+            diceRollResults = zombiedice.roll()  # rzucaj ponownie
+
+#Bot, który początkowo decyduje, że rzuci od jednego do czterech razy, ale przestaje wcześniej, jeśli zdobędzie dwie strzelby
+class CautiousZombie:
+    def __init__(self, name):
+        self.name = name
+
+    def turn(self, gameState):
+        max_rolls = random.randint(1, 4)
+        shotguns = 0
+        rolls = 0
+        diceRollResults = zombiedice.roll()  # pierwszy rzut
+        while diceRollResults is not None and rolls < max_rolls:
+            shotguns += diceRollResults['shotgun']
+            if shotguns >= 2:
+                break
+            diceRollResults = zombiedice.roll()  # rzucaj ponownie
+            rolls += 1
+
+
+class ShotgunsMoreThanBrainsZombie:
+    def __init__(self, name):
+        self.name = name
+
+    def turn(self, gameState):
+        brains = 0
+        shotguns = 0
+        diceRollResults = zombiedice.roll()  # pierwszy rzut
+        while diceRollResults is not None:
+            brains += diceRollResults['brains']
+            shotguns += diceRollResults['shotgun']
+            if shotguns > brains:
+                break
+            diceRollResults = zombiedice.roll()  # rzucaj ponownie
+
+
+
+zombies = (
+    RandomDecisionZombie(name='Random Decision Zombie'),
+    TwoBrainsZombie(name='Two Brains Zombie'),
+    TwoShotgunsZombie(name='Two Shotguns Zombie'),
+    CautiousZombie(name='Cautious Zombie'),
+    ShotgunsMoreThanBrainsZombie(name='Shotguns More Than Brains Zombie'),
+    # Możesz dodać więcej botów tutaj
+)
+
+# Uruchomienie symulatora w trybie Web GUI:
+zombiedice.runWebGui(zombies=zombies, numGames=1000)
+
